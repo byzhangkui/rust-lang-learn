@@ -237,3 +237,19 @@ x + 1 替换为 return x + 1 或者 return x + 1; 均可正常编译执行。
 
 Rust 支持使用 // 的行注释
 
+# 控制流(Control Flow)
+
+## if 表达式
+
+```rust
+    let number = 12;
+
+    if number > 100 {
+        println!("Too Big");
+    } else if number < 10 {
+        println!("Too Small");
+    } else {
+        println!("Ok");
+    }
+```
+
