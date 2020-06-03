@@ -253,3 +253,119 @@ Rust 支持使用 // 的行注释
     }
 ```
 
+### 注意：
+
+if 表达式的条件必须是 bool 类型，如果非 bool 类型会报错。Rust 不会将非 bool 类型转换为 bool 类型。例如：
+
+```rust
+    let number = 12;
+
+    if number {
+        println!("Big than zero");
+    } 
+```
+
+编译时会报错：
+
+```
+4 |     if number {
+  |        ^^^^^^ expected `bool`, found integer
+```
+
+### 在 let 中使用 if 表达式
+
+可以在let 语句中使用 if 
+
+```rust
+    let flag = true;
+    let result = if flag { 1 } else { 0 };
+    println!("The value is: {}", result);
+```
+
+Tips：
+
+- 1/0 后不加分号是表达式，参考：语句和表达式一节内容
+- If else 分支中返回的值类型要一致，否则会出错
+
+```rust
+    let flag = true;
+    let result = if flag { 1 } else { "0" };
+    println!("The value is: {}", result);
+```
+
+```
+3 |     let result = if flag { 1 } else { "0" };
+  |                            -          ^^^ expected integer, found `&str`
+  |                            |
+  |                            expected because of this
+```
+
+> let 中使用 if 表达式类似 C++ 中的 ? : 三元表达式作用
+
+## 循环
+
+Rust 可以用 loop, while, for 来实现循环
+
+### loop(无限循环)
+
+```rust
+    loop {
+        println!("again!");
+    }
+```
+
+可用 break 打破循环
+
+> 类似 C++ 中的 while(true)
+
+#### 从loop中返回值
+
+```rust
+    let mut retry_count = 0;
+    
+    let result = loop {
+        retry_count += 1;
+
+        if retry_count > 3 {
+            break false;
+        }
+    };
+    println!("The result is {}", result);
+```
+
+结果：
+
+```
+The result is false
+```
+
+
+
+### while 
+
+```rust
+    let mut retry_count = 0;
+    while retry_count < 3 {
+        println!("The result is {}", retry_count);
+        retry_count += 1;
+    }
+```
+
+结果：
+
+```
+The result is 0
+The result is 1
+The result is 2
+```
+
+### for
+
+```rust
+    let array = [10, 20, 30, 40, 50];
+
+    for item in array.iter() {
+        println!("The value is : {}", item);
+    }
+```
+
