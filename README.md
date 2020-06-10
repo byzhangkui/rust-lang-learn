@@ -475,7 +475,7 @@ String 类型支持 mut ，可动态增删字符，其分配在堆上。
 
 在这个例子中，s 离开作用域时，Rust 会自动调用 drop 释放内存。
 
-> 使用RAII管理资源声明周期，类似 C++ 中的std::string。
+> 使用RAII管理资源声明周期，类似 C++ 中的 std::string。
 
 ### Move
 
@@ -834,9 +834,71 @@ Slice 是一个很有意思的特性。Slice 可以引用一个集合中的连�
     let slice = &s[..]; // drop both values, take a slice of the entire string
 ```
 
-实例：
+一个例子：
+
+```rust
+fn first_word(s: &String) -> &str {
+    let bytes = s.as_bytes();
+
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[0..i];
+        }
+    }
+
+    &s[..]
+}
+```
 
 
+
+这里会存在一个问题，如果 slice 所引用的字符串无效，会出现什么情况？实际上，Rust 编译期保证了其引用的字符串是始终有效的。
+
+```rust
+        let mut s = String::from("hello");
+        let slice = &s[0..2];
+        s.clear();
+        println!("sclie: {}", slice);
+```
+
+在清空字符串 s 后，使用 slice，编译器会报错误：
+
+```
+25 |         let slice = &s[0..2];
+   |                      - immutable borrow occurs here
+26 |         s.clear();
+   |         ^^^^^^^^^ mutable borrow occurs here
+27 |         println!("sclie: {}", slice);
+   |                               ----- immutable borrow later used here
+```
+
+#### String Literals Are Slices
+
+```rust
+let s = "Hello, world!";
+```
+
+s 的类型是 &str。string 字面量是不可变的；&str 是不可变引用。
+
+#### [String Slices as Parameters](https://doc.rust-lang.org/book/ch04-03-slices.html#string-slices-as-parameters)
+
+```rust
+fn first_word(s: &str) -> &str {
+```
+
+用 &str 代替 &String 作为函数参数类型会更通用，因为 &String 类型可以很方便的转换成 &str 类型，比如上例子中的 &s[..]。
+
+#### Other Slices
+
+在数组中也可以使用 slice type，如：
+
+```rust
+let a = [1, 2, 3, 4, 5];
+
+let slice = &a[1..3];
+```
+
+slice 类型为 &[i32]。
 
 
 
