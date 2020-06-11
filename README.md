@@ -475,7 +475,7 @@ String 类型支持 mut ，可动态增删字符，其分配在堆上。
 
 在这个例子中，s 离开作用域时，Rust 会自动调用 drop 释放内存。
 
-> 使用RAII管理资源声明周期，类似 C++ 中的std::string。
+> 使用RAII管理资源声明周期，类似 C++ 中的 std::string。
 
 ### Move
 
@@ -834,11 +834,265 @@ Slice 是一个很有意思的特性。Slice 可以引用一个集合中的连�
     let slice = &s[..]; // drop both values, take a slice of the entire string
 ```
 
-实例：
+一个例子：
+
+```rust
+fn first_word(s: &String) -> &str {
+    let bytes = s.as_bytes();
+
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[0..i];
+        }
+    }
+
+    &s[..]
+}
+```
 
 
 
+这里会存在一个问题，如果 slice 所引用的字符串无效，会出现什么情况？实际上，Rust 编译期保证了其引用的字符串是始终有效的。
 
+```rust
+        let mut s = String::from("hello");
+        let slice = &s[0..2];
+        s.clear();
+        println!("sclie: {}", slice);
+```
+
+在清空字符串 s 后，使用 slice，编译器会报错误：
+
+```
+25 |         let slice = &s[0..2];
+   |                      - immutable borrow occurs here
+26 |         s.clear();
+   |         ^^^^^^^^^ mutable borrow occurs here
+27 |         println!("sclie: {}", slice);
+   |                               ----- immutable borrow later used here
+```
+
+#### String Literals Are Slices
+
+```rust
+let s = "Hello, world!";
+```
+
+s 的类型是 &str。string 字面量是不可变的；&str 是不可变引用。
+
+#### [String Slices as Parameters](https://doc.rust-lang.org/book/ch04-03-slices.html#string-slices-as-parameters)
+
+```rust
+fn first_word(s: &str) -> &str {
+```
+
+用 &str 代替 &String 作为函数参数类型会更通用，因为 &String 类型可以很方便的转换成 &str 类型，比如上例子中的 &s[..]。
+
+#### Other Slices
+
+在数组中也可以使用 slice type，如：
+
+```rust
+let a = [1, 2, 3, 4, 5];
+
+let slice = &a[1..3];
+```
+
+slice 类型为 &[i32]。
+
+# Struct
+
+## 定义和使用
+
+定义一个 struct：
+
+```rust
+struct User {
+    username: String,
+    email: String,
+    sign_in_count: u64,
+    active: bool,
+}
+```
+
+创建 struct 的实例：
+
+```rust
+    let user1 = User {
+        email: String::from("someone@example.com"),
+        username: String::from("someusername123"),
+        active: true,
+        sign_in_count: 1,
+    };
+    println!("name:{}, email:{}", user1.username, user1.email);
+```
+
+注意：strcut 的每个成员都必须显示初始化，否则会得到一个编译错误。
+
+如果需要修改 struct 实例中的成员，需要将整个实例变为mutable，如 let mut user1。注意，不能只将结构体中的某个成员指定为 mutable。
+
+## 初始化
+
+### *field init shorthand* syntax
+
+Rust 提供了一种便捷初始化的方式，当变量名和 struct 的字段名相同时，可以用字段初始化简写语法（*field init shorthand* syntax），如下：
+
+```rust
+    let email = String::from("abc@example.com");
+    let username = String::from("zhangsan");
+    let user2 = User {
+        email,
+        username,
+        active: true,
+        sign_in_count: 1,
+    };   
+    println!("name:{}, email:{}", user2.username, user2.email);
+```
+
+使用 email 简化 email: email 的写法，这在方法中初始化 struct 时尤其有用。只要将参数名和 struct 字段名定义成一样，则可享受简写带来的便利性。
+
+```rust
+fn build_user(email: String, username: String) -> User {
+    User {
+        email,
+        username,
+        active: true,
+        sign_in_count: 1,
+    }
+}
+```
+
+### *struct update syntax*
+
+当定义一个新的 struct 时，其大部分字段的值和老的 strcut 一致时，可用 struct 更新语法，如下：
+
+```rust
+    let user2 = User {
+        email: String::from("another@example.com"),
+        username: String::from("anotherusername567"),
+        ..user1
+    };
+```
+
+创建了新的实例 user2，其重新赋值了 email 和 username，其他字段值保持和 user1 一致。
+
+### Tuple Struct
+
+Tuple struct 是给 struct 命名，但不给其字段命名。其用处是想定义一个独立的类型，但又没必要给每个字段命名。比如一些简单类型，其字段有比较明显的含义。
+
+```rust
+    struct Color(i32, i32, i32);
+    struct Point(i32, i32, i32);
+
+    let black = Color(0, 0, 0);
+    let origin = Point(0, 0, 0);
+```
+
+说明，尽管上例子中 Color 和 Point 具有相同的字段数和类型，但这两个为不同的类型。访问其字段的方式同 tuple ，使用结构或者 .序号的方式。
+
+### Tips
+
+#### Struct vs Tuple
+
+struct 相比 tuple 的优点是类型和字段均具名，代码会更容易理解。
+
+#### 小技巧：优雅的输出 struct 的字段值
+
+struct 定义前添加 `#[derive(Debug)]` 注解：
+
+```rust
+#[derive(Debug)]
+struct User {
+    username: String,
+    email: String,
+    sign_in_count: u64,
+    active: bool,
+}
+```
+
+在 `println!` 中使用`{:#?}`:
+
+```rust
+println!("user2 is {:?}", user2);
+```
+
+输出为：
+
+```
+user2 is User { username: "anotherusername567", email: "another@example.com", sign_in_count: 1, active: true }
+```
+
+## Methods
+
+Rust 中可以基于 struct 上下文来定义函数，形式如下：
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+}
+
+fn main() {
+    let rect = Rectangle{
+        width: 100,
+        height: 200,
+    };
+    println!("area is {}", rect.area());
+}
+
+```
+
+以 impl 块开始，在大括号中定义方法，方法的第一个参数为 &self。说明 &self 仍表明为 brrowing 语义。
+
+> 类比于 C++，相当于给 Rectangle 定义了成员函数。只不过 C++ 中成员函数隐藏了 this 参数，由编译器生成。
+
+说明，Rust 中可以在一个 impl 中写多个 方法，也可以在多个 impl 中写多个方法。为了可读性，写在一处是比较好的做法。
+
+### [关联函数 Associated Functions](https://doc.rust-lang.org/book/ch05-03-method-syntax.html#associated-functions)
+
+impl 块中可以定义不带 self 参数的函数，他与结构体关联，但又不作用于一个结构体的实例。
+
+```rust
+impl Rectangle {
+    fn square(size: u32) -> Rectangle {
+        Rectangle { width: size, height: size }
+    }
+}
+```
+
+如果你这样调用：
+
+```rust
+rect.square(1);
+```
+
+会得到编译错误:
+
+```rust
+2  | struct Rectangle {
+   | ---------------- method `square` not found for this
+...
+26 |     rect.square(1);
+   |     -----^^^^^^
+   |     |    |
+   |     |    this is an associated function, not a method
+   |     help: use associated function syntax instead: `Rectangle::square`
+```
+
+关联函数使用方法如下：
+
+```rust
+let square = Rectangle::square(1);
+```
+
+> 有点静态函数或者 namespace 中函数使用的意思。
 
 # Rust 优势
 

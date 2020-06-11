@@ -16,4 +16,26 @@ fn main() {
 
     let slice = &s[0..s.len()];
     let slice = &s[..]; // drop both values, take a slice of the entire string
+
+    let first_world = first_word(&s);
+    println!("first word: {}", first_world);
+
+    {
+        let mut s = String::from("hello");
+        let slice = &s[0..2];
+        //s.clear(); // error,
+        println!("sclie: {}", slice);
+    }
+}
+
+fn first_word(s: &String) -> &str {
+    let bytes = s.as_bytes();
+
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[0..i];
+        }
+    }
+
+    &s[..]
 }
