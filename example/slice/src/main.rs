@@ -23,7 +23,7 @@ fn main() {
     {
         let mut s = String::from("hello");
         let slice = &s[0..2];
-        s.clear();
+        //s.clear(); // error,
         println!("sclie: {}", slice);
     }
 }
