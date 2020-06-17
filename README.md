@@ -1094,6 +1094,184 @@ let square = Rectangle::square(1);
 
 > 有点静态函数或者 namespace 中函数使用的意思。
 
+# Enum
+
+枚举在 Rust 中是一个与众不同的特性。
+
+## 枚举的定义和使用
+
+比如我们定义IPV4和IPV6的两个枚举值：
+
+```rust
+enum IpAddrKind{
+    V4,
+    V6,
+}
+```
+
+使用如下：
+
+```rust
+fn route(ip_kind: IpAddrKind) {
+    match ip_kind {
+        IpAddrKind::V4 => println!("ipv4"),
+        IpAddrKind::V6 => println!("ipv6"),
+    }
+}
+
+fn main() {
+    let four = IpAddrKind::V4;
+    let six = IpAddrKind::V6;
+    route(four);
+    route(six);
+}
+```
+
+配合结构体定义IPV4 和 IPV6的数据结构：
+
+```rust
+struct IpAddr {
+    kind: IpAddrKind,
+    address: String,
+}
+let loopback4 = IpAddr {
+  kind: IpAddrKind::V4,
+  address: String::from("127.0.0.1"),
+};
+let loopback4 = IpAddr {
+  kind: IpAddrKind::V6,
+  address: String::from(":1"),
+};
+```
+
+
+
+## 枚举中包含数据
+
+Rust 中可以在枚举中实现上面IPV4 和 IPV6 数据结构的定义：
+
+```rust
+enum IpAddress {
+    V4(String),
+    V6(String),
+}
+
+fn route_new(addr: IpAddress) {
+    match addr {
+        IpAddress::V4(v4) => println!("ipv4: {}", v4),
+        IpAddress::V6(v6) => println!("ipv6: {}", v6),
+    }
+}
+
+fn main() {
+    let v4 = IpAddress::V4(String::from("127.0.0.1"));
+    let v6 = IpAddress::V6(String::from(":1"));
+    route_new(v4);
+    route_new(v6);
+}
+```
+
+## match 控制流
+
+Rust 提供了 match 语义来处理枚举的控制流：
+
+```rust
+fn route_new(addr: IpAddress) {
+    match addr {
+        IpAddress::V4(v4) => println!("ipv4: {}", v4),
+        IpAddress::V6(v6) => println!("ipv6: {}", v6),
+    }
+}
+```
+
+> 类似 C++ 的 switch
+
+### _ 占位符
+
+_ 代表 match 中未被匹配到的分支
+
+```rust
+    let some_u8_value = 0u8;
+    match some_u8_value {
+        1 => println!("one"),
+        3 => println!("three"),
+        5 => println!("five"),
+        7 => println!("seven"),
+        _ => (),
+    }
+```
+
+> 类似 C++ switch 中的 default 
+
+## Option Enum
+
+```rust
+enum Option<T> {
+    Some(T),
+    None,
+}
+```
+
+Rust 中提供 Option Enum 主要是解决其他语言中空指针的问题。Option<T> 定义的变量要么有值，取 Some 中的值；要么值为 None。并且 Option<T> 和 T 是不同的类型，不能直接使用 Option<T> 类型。
+
+```rust
+    let some_number = Some(5);
+    let some_string = Some("a string");
+
+    let absent_number: Option<i32> = None;
+```
+
+注意：如果将一个变量赋值为 None，需要显示指明其类型，因为编译器无法推导出其类型。
+
+#### 配合 match 使用
+
+```rust
+fn plus_one(x: Option<i32>) -> Option<i32> {
+    match x {
+        Some(i) => Some(i + 1),
+        None => None
+    }
+}
+
+let some_number = Some(5);
+let ret = plus_one(some_number);
+```
+
+## if let 语法糖
+
+继续上个例子，如果想在 ret 为 6 的时候进行逻辑处理，使用 match 写法如下：
+
+```rust
+    match ret {
+        Some(6) => println!("number is 6"),
+        _ => ()
+    }
+```
+
+使用 if let 可以这么写达到同样的效果：
+
+```rust
+    if let Some(6) = ret {
+        println!("number is 6");
+    }
+```
+
+当然，也支持 else ，实现 match 中的 _ 相同的意义。
+
+```rust
+    if let Some(6) = ret {
+        println!("number is 6");
+    } else {
+        println!("other values");
+    }
+```
+
+对于只处理枚举中的一个分支的时候，代码有明显的简化。
+
+
+
+
+
 # Rust 优势
 
 ## 资源管理
