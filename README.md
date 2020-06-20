@@ -1094,6 +1094,14 @@ let square = Rectangle::square(1);
 
 > 有点静态函数或者 namespace 中函数使用的意思。
 
+# Common Collections
+
+## Vector
+
+vector 只能存储同一类型的数据。
+
+
+
 # Rust 优势
 
 ## 资源管理
