@@ -1094,148 +1094,6 @@ let square = Rectangle::square(1);
 
 > 有点静态函数或者 namespace 中函数使用的意思。
 
-# Common Collections
-
-## Vector
-
-vector 只能存储同一类型的数据。
-
-### 创建
-
-创建一个 vector：
-
-```rust
-let v: Vec<i32> = Vec::new();
-```
-
-使用初始化列表创建 vector：
-
-```rust
-    let mut v = vec![1,2,3];
-    v.push(4);
-    v.push(5);
-```
-
-这两种形式的差别在于：创建一个空 vector 的时候，需要指定类型，因为编译器无法推导类型；而使用初始化列表创建 vector 的时候，可不用显示说明类型，因为编译器可根据初始化列表中的数据推导出类型。
-
-### 访问
-
-```rust
-    let third: &i32 = &v[2];
-    println!("The third element is {}", third);
-
-    match v.get(2) {
-        Some(third) => println!("The third element is {}", third),
-        None => println!("There is no third element."),
-    }
-```
-
-有两种形式：通过直接引用位置和使用get方法。
-
-### 异常
-
-如果越界访问会出现什么情况？
-
-```rust
-    let mut v = vec![1,2,3];
-    let item: &i32 = &v[6];
-```
-
-使用直接引用位置访问的时候，如果发生越界，会产生 panic:
-
-```
-thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 6'
-```
-
-如果使用 get 形式访问，则会走到 None 分支，程序不会产生异常。
-
-```rust
-    match v.get(6) {
-        Some(item) => println!("The element is {}", item),
-        None => println!("There is no element."),
-    }
-```
-
-> 对于 C++ 的 std::vector，使用 [] 进行越界访问时会获得未定义的行为，根据现象根据编译器实现不同，获取到默认值或者崩溃。使用 at 进行越界访问时，会得到 std::out_of_rang 异常。
-
-### 安全性
-
-```rust
-    let v: Vec<i32> = Vec::new();
-    let mut v = vec![1,2,3];
-    v.push(4);
-    v.push(5);
-    let third: &i32 = &v[2];
-    v.push(6);
-    println!("The third element is {}", third);
-```
-
-如果在有引用指向 vector 内的元素时，执行改变 vector 行为，比如 push。编译器会报错：
-
-```
-error[E0502]: cannot borrow `v` as mutable because it is also borrowed as immutable
- --> src/main.rs:8:5
-  |
-7 |     let third: &i32 = &v[2];
-  |                        - immutable borrow occurs here
-8 |     v.push(6);
-  |     ^^^^^^^^^ mutable borrow occurs here
-9 |     println!("The third element is {}", third);
-  |                                         ----- immutable borrow later used here
-```
-
-这是 rust 在保证生命周期内元素是可访问的，也避免并发访问时 immutable 引用的元素被改变。
-
-> 可以看到这里和 String/slice 的行为是一致的，同样也不允许同时存在两个 mutable 引用。
-
-### 遍历
-
-使用迭代器遍历：
-
-```rust
-    for i in &v {
-        println!("{}", i);
-    }
-```
-
-使用 mutable 迭代器遍历：
-
-```rust
-    for i in &mut v {
-        *i += 50;
-    }
-```
-
-修改 vector 内值的时候，需要使用 * 解引用后再修改。
-
-### 使用 eunm 配合 vector 存储多种类型的值
-
-开始时提到，vector 只能存储同一种类型的值，如果想存储多种类型的值，可以配合 enum 来实现。
-
-```rust
-enum Cell{
-    Int(i32),
-    Float(f64),
-    Text(String),
-}
-
-fn main() {
-    let row = vec![
-        Cell::Int(1),
-        Cell::Float(2.2),
-        Cell::Text(String::from("3")),
-    ];
-
-    for cell in &row {
-        match cell {
-            Cell::Int(x) =>  println!("{}", x),
-            Cell::Float(x) =>  println!("{}", x),
-            Cell::Text(x) =>  println!("{}", x),
-      }
-    }
-}       
-```
-
 # Enum
 
 枚举在 Rust 中是一个与众不同的特性。
@@ -1410,7 +1268,149 @@ let ret = plus_one(some_number);
 
 对于只处理枚举中的一个分支的时候，代码有明显的简化。
 
+# Common Collections
 
+## Vector
+
+vector 只能存储同一类型的数据。
+
+### 创建
+
+创建一个 vector：
+
+```rust
+let v: Vec<i32> = Vec::new();
+```
+
+使用初始化列表创建 vector：
+
+```rust
+    let mut v = vec![1,2,3];
+    v.push(4);
+    v.push(5);
+```
+
+这两种形式的差别在于：创建一个空 vector 的时候，需要指定类型，因为编译器无法推导类型；而使用初始化列表创建 vector 的时候，可不用显示说明类型，因为编译器可根据初始化列表中的数据推导出类型。
+
+### 访问
+
+```rust
+    let third: &i32 = &v[2];
+    println!("The third element is {}", third);
+
+    match v.get(2) {
+        Some(third) => println!("The third element is {}", third),
+        None => println!("There is no third element."),
+    }
+```
+
+有两种形式：通过直接引用位置和使用get方法。
+
+### 异常
+
+如果越界访问会出现什么情况？
+
+```rust
+    let mut v = vec![1,2,3];
+    let item: &i32 = &v[6];
+```
+
+使用直接引用位置访问的时候，如果发生越界，会产生 panic:
+
+```
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 6'
+```
+
+如果使用 get 形式访问，则会走到 None 分支，程序不会产生异常。
+
+```rust
+    match v.get(6) {
+        Some(item) => println!("The element is {}", item),
+        None => println!("There is no element."),
+    }
+```
+
+> 对于 C++ 的 std::vector，使用 [] 进行越界访问时会获得未定义的行为，根据现象根据编译器实现不同，获取到默认值或者崩溃。使用 at 进行越界访问时，会得到 std::out_of_rang 异常。
+
+### 安全性
+
+```rust
+    let v: Vec<i32> = Vec::new();
+    let mut v = vec![1,2,3];
+    v.push(4);
+    v.push(5);
+    let third: &i32 = &v[2];
+    v.push(6);
+    println!("The third element is {}", third);
+```
+
+如果在有引用指向 vector 内的元素时，执行改变 vector 行为，比如 push。编译器会报错：
+
+```
+error[E0502]: cannot borrow `v` as mutable because it is also borrowed as immutable
+ --> src/main.rs:8:5
+  |
+7 |     let third: &i32 = &v[2];
+  |                        - immutable borrow occurs here
+8 |     v.push(6);
+  |     ^^^^^^^^^ mutable borrow occurs here
+9 |     println!("The third element is {}", third);
+  |                                         ----- immutable borrow later used here
+```
+
+这是 rust 在保证生命周期内元素是可访问的，也避免并发访问时 immutable 引用的元素被改变。
+
+> 可以看到这里和 String/slice 的行为是一致的，同样也不允许同时存在两个 mutable 引用。
+
+### 遍历
+
+使用迭代器遍历：
+
+```rust
+    for i in &v {
+        println!("{}", i);
+    }
+```
+
+使用 mutable 迭代器遍历：
+
+```rust
+    for i in &mut v {
+        *i += 50;
+    }
+```
+
+修改 vector 内值的时候，需要使用 * 解引用后再修改。
+
+### 使用 eunm 配合 vector 存储多种类型的值
+
+开始时提到，vector 只能存储同一种类型的值，如果想存储多种类型的值，可以配合 enum 来实现。
+
+```rust
+enum Cell{
+    Int(i32),
+    Float(f64),
+    Text(String),
+}
+
+fn main() {
+    let row = vec![
+        Cell::Int(1),
+        Cell::Float(2.2),
+        Cell::Text(String::from("3")),
+    ];
+
+    for cell in &row {
+        match cell {
+            Cell::Int(x) =>  println!("{}", x),
+            Cell::Float(x) =>  println!("{}", x),
+            Cell::Text(x) =>  println!("{}", x),
+      }
+    }
+}       
+```
+
+# 
 
 
 
